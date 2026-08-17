@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RAILGUARD - AI-Powered Smart Railway Track Inspection System IoT Dashboard">
+    <title>RAILGUARD – AI-Powered Railway Track Inspection Dashboard</title>
+
+    <!-- Vanilla Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="app-wrapper">
+
+        <!-- ==========================================
+             SIDEBAR NAVIGATION
+             ========================================== -->
+        <aside class="sidebar">
+            <div class="brand-header">
+                <div class="brand-logo">RG</div>
+                <div>
+                    <div class="brand-title">RAILGUARD</div>
+                    <div class="brand-subtitle">AI TRACK INSPECTION</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-target="section-overview">
+                    <span>📊</span> Dashboard
+                </a>
+                <a class="nav-item" data-target="section-crack-detection">
+                    <span>🔍</span> IR Crack Detection
+                </a>
+                <a class="nav-item" data-target="section-ultrasonic">
+                    <span>📡</span> Obstacle Ultrasonic
+                </a>
+                <a class="nav-item" data-target="section-vibration">
+                    <span>📈</span> Vibration Monitor
+                </a>
+                <a class="nav-item" data-target="section-camera">
+                    <span>📷</span> ESP32-CAM Feed
+                </a>
+                <a class="nav-item" data-target="section-ai-vision">
+                    <span>🧠</span> AI Vision Result
+                </a>
+                <a class="nav-item" data-target="section-lora">
+                    <span>📶</span> LoRa Link
+                </a>
+                <a class="nav-item" data-target="section-history">
+                    <span>📜</span> Event History
+                </a>
+                <a class="nav-item" data-target="section-location">
+                    <span>📍</span> Rover Location
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div>SYSTEM STATUS: <span id="lbl-sidebar-sys-status" style="color:var(--color-safe); font-weight:bold;">NOMINAL</span></div>
+                <div style="margin-top:4px;">UPTIME: <span id="lbl-system-uptime">00:00:00</span></div>
+            </div>
+        </aside>
+
+        <!-- ==========================================
+             MAIN CONTENT AREA
+             ========================================== -->
+        <main class="main-content">
+
+            <!-- HEADER & TOP INDICATORS -->
+            <header class="top-header">
+                <div class="header-title-box">
+                    <h1>RAILGUARD</h1>
+                    <p>AI-POWERED RAILWAY TRACK INSPECTION SYSTEM</p>
+                </div>
+
+                <!-- Top-right indicators -->
+                <div class="system-indicators-grid">
+                    <div class="indicator-pill">
+                        <span class="label">System:</span>
+                        <span id="sys-status-badge" class="badge badge-warning">CONNECTING</span>
+                    </div>
+                    <div class="indicator-pill">
+                        <span class="label">LoRa:</span>
+                        <span id="lora-status-badge" class="badge badge-warning">WAITING</span>
+                    </div>
+                    <div class="indicator-pill">
+                        <span class="label">ESP32:</span>
+                        <span id="esp-status-badge" class="badge badge-warning">WAITING</span>
+                    </div>
+                    <div class="indicator-pill">
+                        <span class="label">Camera:</span>
+                        <span id="cam-status-badge" class="badge badge-warning">OFFLINE</span>
+                    </div>
+                    <div class="indicator-pill">
+                        <span class="label">Battery:</span>
+                        <div class="battery-bar"><div id="battery-level-fill" class="battery-fill" style="width: 0%;"></div></div>
+                        <span id="battery-level-text" style="font-weight:bold;">--</span>
+                    </div>
+                    <div class="indicator-pill">
+                        <span class="label">Last Data:</span>
+                        <span id="last-data-timestamp" style="font-family:var(--font-mono); color:var(--color-cyan);">--:--:--</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- LIVE SYSTEM SUMMARY STATUS BAR -->
+            <div class="panel-card" style="margin-bottom: 24px; padding: 14px 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-size:13px;">
+                    <div><strong>DATA STREAM:</strong> <span id="lbl-stream-status" class="badge badge-cyan">WAITING</span></div>
+                    <div><strong>PACKET NO:</strong> <span id="lbl-last-packet-no" style="font-family:var(--font-mono); color:#fff;">#--</span></div>
+                    <div><strong>RATE:</strong> <span id="lbl-freq-val">0.0 Hz</span></div>
+                    <div><strong>RSSI:</strong> <span id="lbl-rssi-val" style="color:var(--color-cyan); font-weight:bold;">-- dBm</span></div>
+                    <div><strong>SNR:</strong> <span id="lbl-snr-val" style="color:var(--color-cyan); font-weight:bold;">-- dB</span></div>
+                    <div>
+                        <button id="btn-toggle-pause" class="btn btn-secondary">Pause Data</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTRAL HERO TRACK SAFETY STATUS -->
+            <section id="section-overview">
+                <div id="central-safety-banner" class="safety-banner status-safe" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(17, 24, 39, 0.9)); border-color: var(--color-cyan);">
+                    <div>
+                        <div id="safety-status-text" class="safety-title">TRACK SAFETY STATUS: WAITING FOR HARDWARE DATA</div>
+                        <div id="safety-detail-text" class="safety-detail">Connect ESP32 hardware or send a packet to initialize live inspection.</div>
+
+                        <!-- Critical Alert Detail Box -->
+                        <div id="safety-critical-alert-box" class="critical-alert-box" style="display: none;">
+                            <strong style="color:var(--color-critical);">CRITICAL TRACK ALERT DETECTED</strong>
+                            <div style="margin-top:4px;">
+                                Reason: <span id="alert-box-reason">IR Crack Sensor Triggered</span><br>
+                                Detected Sensors: <strong id="alert-box-sensors" style="color:#fff;">None</strong> | 
+                                AI Confidence: <strong id="alert-box-confidence" style="color:#fff;">0%</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="status-dot dot-green"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MAIN 12-COLUMN DASHBOARD GRID -->
+            <div class="dashboard-grid">
+
+                <!-- 1. AI / IR CRACK DETECTION PANEL -->
+                <div id="section-crack-detection" class="panel-card col-8">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>🔍</span> AI / IR CRACK DETECTION</div>
+                        <span id="badge-overall-ir" class="badge badge-safe">CLEAR</span>
+                    </div>
+
+                    <!-- 4 Individual IR Sensor Cards -->
+                    <div class="ir-sensor-grid">
+                        <div id="card-ir1" class="sensor-card">
+                            <div class="sensor-name">IR SENSOR 1</div>
+                            <span id="badge-ir1" class="badge badge-safe">CLEAR</span>
+                            <div style="margin-top:8px;"><span id="indicator-ir1" class="status-dot dot-green"></span></div>
+                        </div>
+                        <div id="card-ir2" class="sensor-card">
+                            <div class="sensor-name">IR SENSOR 2</div>
+                            <span id="badge-ir2" class="badge badge-safe">CLEAR</span>
+                            <div style="margin-top:8px;"><span id="indicator-ir2" class="status-dot dot-green"></span></div>
+                        </div>
+                        <div id="card-ir3" class="sensor-card">
+                            <div class="sensor-name">IR SENSOR 3</div>
+                            <span id="badge-ir3" class="badge badge-safe">CLEAR</span>
+                            <div style="margin-top:8px;"><span id="indicator-ir3" class="status-dot dot-green"></span></div>
+                        </div>
+                        <div id="card-ir4" class="sensor-card">
+                            <div class="sensor-name">IR SENSOR 4</div>
+                            <span id="badge-ir4" class="badge badge-safe">CLEAR</span>
+                            <div style="margin-top:8px;"><span id="indicator-ir4" class="status-dot dot-green"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stats -->
+                    <div class="ir-summary-bar">
+                        <div>TOTAL IR SENSORS: <strong id="lbl-total-ir-count">4</strong></div>
+                        <div>CRACK DETECTED SENSORS: <strong id="lbl-cracked-ir-count" style="color:var(--color-cyan);">0 / 4</strong></div>
+                        <div>DETECTED AT: <strong id="lbl-cracked-sensor-list" style="color:var(--color-critical);">None</strong></div>
+                    </div>
+                </div>
+
+                <!-- 2. AI VISION ANALYSIS PANEL -->
+                <div id="section-ai-vision" class="panel-card col-4">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>🧠</span> AI VISION ANALYSIS</div>
+                        <span id="badge-ai-detection" class="badge badge-warning">WAITING</span>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <div>
+                            <span style="font-size:12px; color:var(--text-muted);">CLASSIFICATION:</span>
+                            <div id="lbl-ai-class" style="font-size:16px; font-weight:bold; color:var(--text-muted);">Awaiting Hardware Data</div>
+                        </div>
+
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:12px;">
+                                <span>CONFIDENCE SCORE:</span>
+                                <strong id="lbl-ai-confidence" style="color:var(--text-muted);">0%</strong>
+                            </div>
+                            <div class="gauge-bar-container">
+                                <div id="ai-confidence-gauge-fill" class="gauge-bar-fill" style="width: 0%; background-color:var(--color-cyan);"></div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; font-size:12px; border-top:1px solid var(--border-color); padding-top:8px;">
+                            <span>INFERENCE LATENCY:</span>
+                            <strong id="lbl-ai-latency">0 ms</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ULTRASONIC OBSTACLE DETECTION PANEL -->
+                <div id="section-ultrasonic" class="panel-card col-6">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>📡</span> ULTRASONIC OBSTACLE DETECTION</div>
+                        <span id="badge-obstacle-status" class="badge badge-warning">WAITING</span>
+                    </div>
+
+                    <div class="metric-big-display">
+                        <div id="lbl-distance-m" class="metric-val-primary">-- m</div>
+                        <div id="lbl-distance-cm" class="metric-val-secondary">-- cm</div>
+                    </div>
+
+                    <!-- Progress Gauge Bar (0cm -> 100cm threshold -> 400cm max) -->
+                    <div class="gauge-bar-container">
+                        <div id="obstacle-gauge-fill" class="gauge-bar-fill" style="width: 0%;"></div>
+                    </div>
+                    <div class="gauge-labels">
+                        <span>0 cm</span>
+                        <span style="color:var(--color-warning); font-weight:bold;">Threshold: <span id="lbl-threshold-val">100 cm</span></span>
+                        <span>400 cm</span>
+                    </div>
+
+                    <div style="margin-top:14px; display:flex; align-items:center; gap:10px; font-size:12px;">
+                        <label for="input-obstacle-threshold">Set Threshold (cm):</label>
+                        <input id="input-obstacle-threshold" type="number" class="input-dark" value="100" style="width:80px;" />
+                    </div>
+                </div>
+
+                <!-- 4. VIBRATION MONITOR PANEL -->
+                <div id="section-vibration" class="panel-card col-6">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>📈</span> VIBRATION MONITOR</div>
+                        <span id="badge-vibration-digital" class="badge badge-warning">WAITING</span>
+                    </div>
+
+                    <div class="metrics-row">
+                        <div class="metric-box">
+                            <label>DIGITAL STATUS (DO)</label>
+                            <div class="val" id="lbl-vibration-digital-txt">--</div>
+                        </div>
+                        <div class="metric-box">
+                            <label>ANALOG RAW (AO)</label>
+                            <div class="val" id="lbl-vibration-analog" style="color:var(--color-cyan);">--</div>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Vibration Canvas Chart -->
+                    <div class="chart-container">
+                        <canvas id="canvas-vibration-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 5. ESP32-CAM LIVE INSPECTION PANEL -->
+                <div id="section-camera" class="panel-card col-8" id="camera-panel-card">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>📷</span> ESP32-CAM LIVE INSPECTION FEED</div>
+                        <div>
+                            <button id="btn-cam-snapshot" class="btn btn-secondary" style="font-size:11px;">Capture Snapshot</button>
+                            <button id="btn-cam-fullscreen" class="btn btn-secondary" style="font-size:11px;">Fullscreen</button>
+                        </div>
+                    </div>
+
+                    <div class="camera-container" id="camera-stream-container">
+                        <!-- Simulated visual video feed canvas fallback -->
+                        <canvas id="simulated-cam-canvas" style="width:100%; height:100%; display:block;"></canvas>
+                        
+                        <!-- Optional Live MJPEG Image Stream tag (hidden if simulated mode active) -->
+                        <img id="esp32-cam-stream" class="camera-stream-img" src="" alt="ESP32-CAM Live Stream" style="display:none;" />
+
+                        <div id="camera-offline-msg" class="camera-offline-view" style="display:none;">
+                            <span style="font-size:32px;">📷</span>
+                            <div>CAMERA OFFLINE / UNREACHABLE</div>
+                            <div style="font-size:11px;">Check ESP32-CAM IP connection</div>
+                        </div>
+                    </div>
+
+                    <div class="camera-controls-bar">
+                        <label for="camera-ip-input" style="font-size:12px;">Camera URL:</label>
+                        <input id="camera-ip-input" type="text" class="input-dark" style="flex:1;" placeholder="http://192.168.1.100:81/stream" />
+                        <button id="btn-apply-cam-ip" class="btn btn-primary">Connect Feed</button>
+                    </div>
+
+                    <div id="camera-snapshot-gallery" class="snapshot-gallery"></div>
+                </div>
+
+                <!-- 6. LoRa COMMUNICATION & RAW PACKET -->
+                <div id="section-lora" class="panel-card col-4">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>📶</span> LoRa COMMUNICATION</div>
+                        <span id="badge-lora-transfer-health" class="badge badge-warning">WAITING</span>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="color:var(--text-muted);">Frequency:</span>
+                            <strong>433 MHz</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="color:var(--text-muted);">RSSI Signal:</span>
+                            <strong id="lbl-lora-rssi" style="color:var(--color-cyan);">-- dBm</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="color:var(--text-muted);">SNR Quality:</span>
+                            <strong id="lbl-lora-snr" style="color:var(--color-cyan);">-- dB</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="color:var(--text-muted);">Packets Received:</span>
+                            <strong id="lbl-lora-packets-received">0</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="color:var(--text-muted);">Packet Loss:</span>
+                            <strong id="lbl-lora-packet-loss">0%</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="color:var(--text-muted);">Last Received:</span>
+                            <strong id="lbl-lora-last-rx">--:--:--</strong>
+                        </div>
+                    </div>
+
+                    <!-- RAW DATA PACKET TERMINAL -->
+                    <div style="margin-top:16px;">
+                        <div style="font-size:11px; font-weight:bold; color:var(--text-muted); margin-bottom:4px;">RAW LORA PACKET</div>
+                        <div class="terminal-box">
+                            <span id="raw-packet-terminal-text">Waiting for incoming ESP32 / LoRa telemetry packet...</span>
+                        </div>
+                        <button id="btn-copy-raw-packet" class="btn btn-secondary" style="width:100%; margin-top:8px; font-size:11px;">Copy Packet</button>
+                    </div>
+                </div>
+
+                <!-- 7. TELEMETRY CHARTS GRID -->
+                <div class="panel-card col-6">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>📊</span> ULTRASONIC DISTANCE HISTORY</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="canvas-distance-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel-card col-6">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>📊</span> IR CRACK EVENTS FREQUENCY</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="canvas-ir-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 8. ROVER LOCATION PANEL -->
+                <div id="section-location" class="panel-card col-6">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>📍</span> ROVER GPS LOCATION</div>
+                        <span id="lbl-gps-status" class="badge badge-warning">SEARCHING</span>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:12px; font-size:12px; text-align:center;">
+                        <div>LATITUDE: <strong id="lbl-gps-lat" style="display:block; color:#fff; font-size:14px;">11.0168</strong></div>
+                        <div>LONGITUDE: <strong id="lbl-gps-lng" style="display:block; color:#fff; font-size:14px;">76.9558</strong></div>
+                        <div>ACCURACY: <strong id="lbl-gps-acc" style="display:block; color:var(--color-warning); font-size:14px;">Searching...</strong></div>
+                    </div>
+
+                    <div style="height:220px; background:#0f172a; border-radius:var(--radius-md); overflow:hidden;">
+                        <canvas id="gps-map-canvas"></canvas>
+                    </div>
+                </div>
+
+                <!-- 9. LIVE ALERTS & SYSTEM INFO PANEL -->
+                <div class="panel-card col-6">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>🚨</span> LIVE ALERTS & SYSTEM INFO</div>
+                        <button id="btn-clear-alerts" class="btn btn-secondary" style="font-size:11px;">Clear Alerts</button>
+                    </div>
+
+                    <div id="alerts-feed-list" class="alerts-feed-list">
+                        <div class="empty-alert-msg">No active safety alerts. Waiting for hardware telemetry...</div>
+                    </div>
+
+                    <div style="margin-top:14px; border-top:1px solid var(--border-color); padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:12px; color:var(--text-muted);">Browser Notifications:</span>
+                        <button id="btn-enable-notifications" class="btn btn-secondary" style="font-size:11px;">Enable Alerts</button>
+                    </div>
+                </div>
+
+                <!-- 10. CRACK EVENT HISTORY TABLE PANEL -->
+                <div id="section-history" class="panel-card col-12">
+                    <div class="panel-header">
+                        <div class="panel-title"><span>📜</span> CRACK & TELEMETRY EVENT HISTORY</div>
+                        <div class="table-controls-bar">
+                            <div class="filter-btn-group">
+                                <button class="btn-filter active" data-filter="ALL">ALL</button>
+                                <button class="btn-filter" data-filter="CRACKS">CRACKS</button>
+                                <button class="btn-filter" data-filter="CLEAR">CLEAR</button>
+                                <button class="btn-filter" data-filter="HIGH">HIGH</button>
+                                <button class="btn-filter" data-filter="MEDIUM">MEDIUM</button>
+                                <button class="btn-filter" data-filter="LOW">LOW</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>TIME</th>
+                                    <th>PACKET NO</th>
+                                    <th>SENSOR</th>
+                                    <th>STATUS</th>
+                                    <th>SEVERITY</th>
+                                    <th>GPS LOCATION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="event-history-tbody">
+                                <tr><td colspan="6" style="text-align:center; color:#9ca3af; padding:15px;">No telemetry events received yet. Waiting for ESP32 data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 11. DASHBOARD CONTROLS FOOTER -->
+                <div class="panel-card col-12">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <label class="switch" style="display:flex; align-items:center; gap:8px; font-weight:bold; cursor:pointer;">
+                                <input type="checkbox" id="toggle-demo-mode" />
+                                <span id="lbl-current-mode" class="badge badge-warning">LIVE HARDWARE MODE</span>
+                            </label>
+                            <span style="font-size:12px; color:var(--text-muted);">(Waiting for real ESP32 telemetry packets)</span>
+                        </div>
+
+                        <div style="display:flex; gap:10px;">
+                            <button id="btn-clear-history" class="btn btn-secondary">Clear History</button>
+                            <button id="btn-export-csv" class="btn btn-primary">Export CSV</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div> <!-- END DASHBOARD GRID -->
+
+        </main>
+    </div>
+
+    <!-- JavaScript Application Modules -->
+    <script src="js/parser.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

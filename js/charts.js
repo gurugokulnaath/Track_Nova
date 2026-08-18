@@ -39,8 +39,8 @@ function prepareCanvas(canvasId) {
  * Draw background grid and axes
  */
 function drawChartGrid(ctx, width, height, yMin, yMax, ySteps = 4) {
-    // Background fill
-    ctx.fillStyle = '#0f172a';
+    // Translucent glass background fill
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
     ctx.fillRect(0, 0, width, height);
 
     // Border

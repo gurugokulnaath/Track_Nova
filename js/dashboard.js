@@ -300,7 +300,7 @@ function renderVisualMapCanvas(lat, lng) {
     const h = canvas.height = 220;
 
     // Dark Map background
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
     ctx.fillRect(0, 0, w, h);
 
     // Draw Gridlines
